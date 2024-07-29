@@ -1,5 +1,5 @@
 '''This class is used to connect to an Arduino through the serial port'''
-import maya.api.OpenMaya as om
+
 import time
 import threading
 import serial
@@ -13,9 +13,11 @@ class ArduinoConnection:
 	    @param baudRate: baud Rate in which the Arduino is emitting the signal.
     '''
 
-    def __init__(self, arduinoPort, baudRate):
+    def __init__(self, arduinoPort, mayaAttribute, callbackFunction):
         self.arduinoPort = arduinoPort
-        self.baudRate = baudRate
+        self.mayaAttribute = mayaAttribute
+        self.callbackFunction = callbackFunction
+        self.baudRate = 115200
 
 
     def start(self):
@@ -46,56 +48,19 @@ class ArduinoConnection:
     def communicateWithArduino(self, serialComm):
         '''Loop for Read/Write that will be executed in a thread to not block Maya's UI'''
 
-        if serialComm:
-            try:
-                while True:
-                    if serialComm.in_waiting > 0:
-                        arduinoMessage = serialComm.readline().decode('utf-8').strip()
-                        #cmds.setAttr("pCube1.translateX", int(arduinoMessage))
-                        cmds.setAttr("ambientLight1.intensity", regla_de_tres(int(arduinoMessage)))
-                        #cambiar_posicion_x(int(arduinoMessage))
+        if not serialComm:
+            return
 
-                    time.sleep(0.05)
+        try:
+            while True:
+                if serialComm.in_waiting > 0:
+                    arduinoMessage = serialComm.readline().decode('utf-8').strip()
+                    self.callbackFunction(self.mayaAttribute, int(arduinoMessage))
 
-            except serial.SerialException as error:
-                cmds.warning(f"Error in Arduino comunication: {error}")
-            finally:
-                serialComm.close()
+                time.sleep(0.05)
 
+        except serial.SerialException as error:
+            cmds.warning(f"Error in Arduino comunication: {error}")
 
-
-
-def cambiar_posicion_x(nueva_posicion_x):
-    objeto = 'pCube1'
-    
-    # Verifica si el objeto existe en la escena
-    if cmds.objExists(objeto):
-
-        # Obtén el MObject del objeto
-        selection_list = om.MSelectionList()
-        selection_list.add(objeto)
-        dag_path = selection_list.getDagPath(0)
-        transform_node = dag_path.transform()
-        
-        # Accede a la función de transformación
-        fn_transform = om.MFnTransform(transform_node)
-        
-        # Cambia la posición en el eje X
-        fn_transform.setTranslation(om.MVector(nueva_posicion_x, 0, 0), om.MSpace.kTransform)
-
-
-def regla_de_tres(valor, minimo=0, maximo=200):
-    """
-    Realiza una regla de tres simple con los valores dados.
-
-    :param valor: El valor que se desea escalar.
-    :param minimo: El valor mínimo (por defecto 0).
-    :param maximo: El valor máximo (por defecto 200).
-    :return: El valor escalado entre 0 y 1.
-    """
-    if valor <= minimo:
-        return 0
-    elif valor >= maximo:
-        return 1
-    else:
-        return (valor - minimo) / (maximo - minimo)
+        finally:
+            serialComm.close()

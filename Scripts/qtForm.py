@@ -10,6 +10,7 @@ from shiboken6 import wrapInstance
 
 from maya import cmds
 import maya.OpenMayaUI as omui
+from MayaToArduino.Scripts.mayaSide import ArduinoConnection
 
 
 def mayaMainWindow():
@@ -21,12 +22,13 @@ def mayaMainWindow():
     return wrapInstance(int(mainWindowPtr), QtWidgets.QWidget)
 
 
-
 class QtForm(QtWidgets.QDialog):
     '''User interface for connect some attribute with the selected Arduino pinout'''
 
     def __init__(self, parent = mayaMainWindow()):
         super(QtForm, self).__init__(parent)
+
+        self.connection = None
 
         self.setWindowTitle("Arduino Connection")
         self.setGeometry(100, 100, 300, 300)
@@ -72,7 +74,7 @@ class QtForm(QtWidgets.QDialog):
         right_layout = QtWidgets.QHBoxLayout()
         right_layout.addStretch()  # Agrega espacio flexible a la izquierda
         right_layout.addLayout(form_layout)
-        
+
         layout_valores = QtWidgets.QVBoxLayout()
         layout_valores.addWidget(self.label_valores)
         layout_valores.addWidget(self.lista_valores)
@@ -106,8 +108,10 @@ class QtForm(QtWidgets.QDialog):
         '''Connections setup'''
 
         self.script_job = cmds.scriptJob(event=["SelectionChanged", self.actualizar_atributos], protected=True)
-
         self.actualizar_atributos()
+
+        self.btn_start.clicked.connect(self.startClicked)
+        self.btn_stop.clicked.connect(self.stopClicked)
 
 
     def closeEvent(self, event):
@@ -119,21 +123,50 @@ class QtForm(QtWidgets.QDialog):
 
     def actualizar_atributos(self):
         self.attributeList.clear()
+
         seleccion = cmds.ls(selection=True)
+
         if not seleccion:
             return
-        
+
         # Obtener el primer objeto seleccionado
         objeto = seleccion[0]
-        
+        shapes = cmds.listRelatives(objeto, shapes=True)
         # Atributos de transformación
         atributos_transformacion = ['translateX', 'translateY', 'translateZ',
                                     'rotateX', 'rotateY', 'rotateZ',
-                                    'scaleX', 'scaleY', 'scaleZ']
-        
+                                    'scaleX', 'scaleY', 'scaleZ', 'intensity']
+
         for atributo in atributos_transformacion:
-            if cmds.attributeQuery(atributo, node=objeto, exists=True):
+            try:
+                cmds.getAttr(f"{objeto}.{atributo}")
                 self.attributeList.addItem(f"{atributo}")
+            except ValueError:
+                continue
+
+
+    def startClicked(self):
+        '''What will happend when we press the start button'''
+
+        seleccion = cmds.ls(selection=True)
+
+        if not seleccion:
+            return
+
+        # Obtener el primer objeto seleccionado
+        objeto = seleccion[0]
+
+        attributeSelected = self.attributeList.currentItem().text()
+
+        self.connection = ArduinoConnection(f"COM{self.textCom.text()}", f"{objeto}.{attributeSelected}", funtionToExectute)
+        self.connection.start()
+
+
+    def stopClicked(self):
+        '''What will happend when we press the stop button'''
+
+        if self.connection:
+            self.connection.stopScript()
 
 
     @classmethod
@@ -151,3 +184,9 @@ class QtForm(QtWidgets.QDialog):
         qtTemplateDialog.show()
 
 QtForm.showUI()
+
+
+def funtionToExectute(connectionObject, portValue):
+    '''Write here all the thing you want to execute on every loop'''
+
+    cmds.setAttr(connectionObject, portValue)
