@@ -24,7 +24,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="Images/Logo.jpg" alt="Logo" width="80" height="80">
+    <img src="images/Logo.jpg" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Arduino to Maya libraries</h3>
