@@ -3,7 +3,6 @@
 '''
 
 import subprocess
-import maya.cmds as cmds
 
 # IMPORTANT: Change the path to your Maya Version
 mayapyPath = r"C:\Program Files\Autodesk\Maya<version>\bin\mayapy.exe"

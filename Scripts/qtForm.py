@@ -38,109 +38,105 @@ class QtForm(QtWidgets.QDialog):
         self.createLayout()
         self.createConnections()
 
+        self.scriptJob = cmds.scriptJob(event = ["SelectionChanged", self.updateAttributes], protected = True)
+        self.updateAttributes()
+
 
     def createWidgets(self):
         '''Widgets setup'''
 
-        self.label = QtWidgets.QLabel('COM')
-        self.label.setFixedWidth(50)
+        self.labelCom = QtWidgets.QLabel('COM')
+        self.labelCom.setFixedWidth(50)
 
         self.textCom = QtWidgets.QLineEdit()
         self.textCom.setValidator(QtGui.QIntValidator())
         self.textCom.setFixedWidth(50)
         self.textCom.setAlignment(QtCore.Qt.AlignRight)
 
-        self.label_atributos = QtWidgets.QLabel('Attributes')
-        self.label_valores = QtWidgets.QLabel('Pinout')
+        self.labelAttributes = QtWidgets.QLabel('Attributes')
+        self.labelPinout = QtWidgets.QLabel('Pinout')
 
         self.attributeList = QtWidgets.QListWidget()
-        self.lista_valores = QtWidgets.QListWidget()
-        self.lista_valores.addItems(['A2', 'A3', 'A4'])
+        self.listPinout = QtWidgets.QListWidget()
+        self.listPinout.addItems(['Analog2'])
 
-        self.btn_start = QtWidgets.QPushButton('Start')
-        self.btn_stop = QtWidgets.QPushButton('Stop')
+        self.btnStart = QtWidgets.QPushButton('Start')
+        self.btnStop = QtWidgets.QPushButton('Stop')
 
 
     def createLayout(self):
         '''Layout setup'''
 
-        # Layout para el label y el campo de texto
-        form_layout = QtWidgets.QHBoxLayout()
-        form_layout.addWidget(self.label)
-        form_layout.addWidget(self.textCom)
-        form_layout.setContentsMargins(0, 0, 0, 0)  # Sin márgenes
+        layoutCom = QtWidgets.QHBoxLayout()
+        layoutCom.addWidget(self.labelCom)
+        layoutCom.addWidget(self.textCom)
+        layoutCom.setContentsMargins(0, 0, 0, 0)
 
-        # Layout derecho
-        right_layout = QtWidgets.QHBoxLayout()
-        right_layout.addStretch()  # Agrega espacio flexible a la izquierda
-        right_layout.addLayout(form_layout)
+        layoutRight = QtWidgets.QHBoxLayout()
+        layoutRight.addStretch()
+        layoutRight.addLayout(layoutCom)
 
-        layout_valores = QtWidgets.QVBoxLayout()
-        layout_valores.addWidget(self.label_valores)
-        layout_valores.addWidget(self.lista_valores)
+        layoutPinout = QtWidgets.QVBoxLayout()
+        layoutPinout.addWidget(self.labelPinout)
+        layoutPinout.addWidget(self.listPinout)
 
-        layout_atributos = QtWidgets.QVBoxLayout()
-        layout_atributos.addWidget(self.label_atributos)
-        layout_atributos.addWidget(self.attributeList)
+        layoutAttributes = QtWidgets.QVBoxLayout()
+        layoutAttributes.addWidget(self.labelAttributes)
+        layoutAttributes.addWidget(self.attributeList)
 
-        # Layout de listas
-        listas_layout = QtWidgets.QHBoxLayout()
-        listas_layout.addLayout(layout_valores)
-        listas_layout.addLayout(layout_atributos)
+        layoutLists = QtWidgets.QHBoxLayout()
+        layoutLists.addLayout(layoutPinout)
+        layoutLists.addLayout(layoutAttributes)
 
-        # Layout para los botones
-        botones_layout = QtWidgets.QHBoxLayout()
-        botones_layout.addStretch()  # Agrega espacio flexible a la izquierda
-        botones_layout.addWidget(self.btn_start)
-        botones_layout.addWidget(self.btn_stop)
+        layoutButtons = QtWidgets.QHBoxLayout()
+        layoutButtons.addStretch()
+        layoutButtons.addWidget(self.btnStart)
+        layoutButtons.addWidget(self.btnStop)
 
-        # Layout principal
-        layout = QtWidgets.QVBoxLayout()
-        layout.addLayout(right_layout)  # Agrega el layout a la derecha
-        layout.addLayout(listas_layout)  # Agrega el layout de listas
-        layout.addLayout(botones_layout)  # Agrega el layout de botones
+        layoutMain = QtWidgets.QVBoxLayout()
+        layoutMain.addLayout(layoutRight)
+        layoutMain.addLayout(layoutLists)
+        layoutMain.addLayout(layoutButtons)
 
-        # Establecer el layout al widget principal
-        self.setLayout(layout)
+        self.setLayout(layoutMain)
 
 
     def createConnections(self):
         '''Connections setup'''
 
-        self.script_job = cmds.scriptJob(event=["SelectionChanged", self.actualizar_atributos], protected=True)
-        self.actualizar_atributos()
-
-        self.btn_start.clicked.connect(self.startClicked)
-        self.btn_stop.clicked.connect(self.stopClicked)
+        self.btnStart.clicked.connect(self.startClicked)
+        self.btnStop.clicked.connect(self.stopClicked)
 
 
     def closeEvent(self, event):
-        # Eliminar el scriptJob cuando se cierra el formulario
-        if hasattr(self, 'script_job') and cmds.scriptJob(exists=self.script_job):
-            cmds.scriptJob(kill=self.script_job, force=True)
+        '''Stop the ScriptJob when the form is closed'''
+
+        if hasattr(self, 'scriptJob') and cmds.scriptJob(exists = self.scriptJob):
+            cmds.scriptJob(kill = self.scriptJob, force = True)
+
         event.accept()
 
 
-    def actualizar_atributos(self):
+    def updateAttributes(self):
+        '''Updates the values in the attributes list, depending on what you have selected'''
+
         self.attributeList.clear()
+        selection = cmds.ls(selection = True)
 
-        seleccion = cmds.ls(selection=True)
-
-        if not seleccion:
+        if not selection:
             return
 
-        # Obtener el primer objeto seleccionado
-        objeto = seleccion[0]
-        shapes = cmds.listRelatives(objeto, shapes=True)
-        # Atributos de transformación
-        atributos_transformacion = ['translateX', 'translateY', 'translateZ',
-                                    'rotateX', 'rotateY', 'rotateZ',
-                                    'scaleX', 'scaleY', 'scaleZ', 'intensity']
+        selectedObject = selection[0]
 
-        for atributo in atributos_transformacion:
+        attributesToList = ['translateX', 'translateY', 'translateZ',
+                            'rotateX', 'rotateY', 'rotateZ',
+                            'scaleX', 'scaleY', 'scaleZ', 'intensity']
+
+        for attribute in attributesToList:
             try:
-                cmds.getAttr(f"{objeto}.{atributo}")
-                self.attributeList.addItem(f"{atributo}")
+                cmds.getAttr(f"{selectedObject}.{attribute}")
+                self.attributeList.addItem(f"{attribute}")
+
             except ValueError:
                 continue
 
@@ -148,17 +144,16 @@ class QtForm(QtWidgets.QDialog):
     def startClicked(self):
         '''What will happend when we press the start button'''
 
-        seleccion = cmds.ls(selection=True)
+        selection = cmds.ls(selection = True)
 
-        if not seleccion:
+        if not selection:
             return
 
-        # Obtener el primer objeto seleccionado
-        objeto = seleccion[0]
+        selectedObject = selection[0]
 
         attributeSelected = self.attributeList.currentItem().text()
 
-        self.connection = ArduinoConnection(f"COM{self.textCom.text()}", f"{objeto}.{attributeSelected}", funtionToExectute)
+        self.connection = ArduinoConnection(f"COM{self.textCom.text()}", f"{selectedObject}.{attributeSelected}", funtionToExectute)
         self.connection.start()
 
 
@@ -166,7 +161,7 @@ class QtForm(QtWidgets.QDialog):
         '''What will happend when we press the stop button'''
 
         if self.connection:
-            self.connection.stopScript()
+            self.connection.stop()
 
 
     @classmethod
