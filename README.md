@@ -63,28 +63,26 @@
 ## About The Project
 <div align="center">
 <a href="https://github.com/othneildrew/Best-README-Template">
-<img src="Images/Pomodoro.jpg" alt="Logo" width="480" height="640">
+<img src="images/thumb.png" alt="Logo" width="640" height="480">
 </a>
 </div>
 <br>
-Pomodoro Timer is a project that allows you to manage your breaks and your concentration time.
+Arduino 2 Maya are libraries I have developed to facilitate communication between the 3D software Maya and an Arduino board, allowing the use of external sensors in Maya.
 
-It has 3 displays, which show different information depending on their color.
+These libraries open up new possibilities for interacting with the software, enabling quick and easy configuration and adaptation of its functionalities.
 
-Yellow indicates the total time spent between work times and breaks
-Red indicates concentration ranges
-Blue indicates rest intervals
+This experimental project allows, for example, controlling scene elements like a camera rig using various devices such as potentiometers or distance sensors.
 
-Through the side button, we can pause the times, or change between the state of concentration or rest in a simple way.
-
-When the times expire, the device will emit an acoustic signal, warning the user that it is time for the next state, and waiting for the user to press to continue.
-
-In the repository you can find the arduino source as well as the STL files to print a new case.
+This robotic arm was 3D printed and assembled with 3 servo motors. Using the 3D files, I created a small functional rig in Maya to connect its rotation attributes to the servo motor angles. By adjusting their origin positions and orientations, the values in Maya reflect 1:1 with those of the arm. Using my Arduino2Maya libraries, I was able to control it in real-time through Autodesk's Maya software.
 
 Feel free to use it and modify it as you need.
 
 If you've found it useful, please consider star the project or a fork.
 Thank you!
+
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=RgAXVjFmatE"><img src="https://img.youtube.com/vi/RgAXVjFmatE/0.jpg" alt="IMAGE ALT TEXT"></a>
+</div>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -112,7 +110,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 LinkedIn - [@LinkedIn](https://www.linkedin.com/in/manuelspk/)
 
-Project Link: [https://github.com/ManuDevTools/Arduino_PomodoroTimer](https://github.com/ManuDevTools/Arduino_PomodoroTimer)
+Project Link: [https://github.com/ManuDevTools/Maya_ArduinoToMaya](https://github.com/ManuDevTools/Maya_ArduinoToMaya)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
